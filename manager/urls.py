@@ -4,6 +4,8 @@ from django.conf.urls.static import static
 from django.conf import settings
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from store.api.router import router_store
+from customer.api.router import router_customer
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -21,6 +23,9 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('manager/', admin.site.urls),
     path('api/', include('accounts.api.router')),
+    path('api/', include('store.api.router')),
+    path('api/', include(router_store.urls)),
+    path('api/', include(router_customer.urls)),
     
     path('docs/', schema_view.with_ui('swagger',
          cache_timeout=0), name='schema-swagger-ui'),
