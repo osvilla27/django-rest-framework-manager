@@ -12,4 +12,4 @@ class MonthAdmin(admin.ModelAdmin):
 
 @admin.register(Sale)
 class SaleAdmin(admin.ModelAdmin):
-    list_display = ('customer_id','date', 'carrier', 'guide', 'delivery_status', 'status')
+    list_display = ('customer', 'store', 'date', 'carrier', 'guide', 'delivery_status', 'status')

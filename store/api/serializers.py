@@ -1,4 +1,5 @@
 from rest_framework.serializers import ModelSerializer
+from customer.api.serializers import CustomerSerializer
 from store.models import Store, Spent, Sale
 from accounts.api.serializers import UserSerializer
 
@@ -18,13 +19,16 @@ class SpentSerializer(ModelSerializer):
         model = Spent
         fields = ['id', 'store', 'year', 'month', 'total', 'description']
 
+
 class SaleSerializer(ModelSerializer):
+
+    customer_data = CustomerSerializer(source='customer', read_only=True)
 
     class Meta:
         model = Sale
         fields = ['id', 
-                'store_id',
-                'customer_id',
+                'store',
+                'customer',
                 'sale',
                 'amount',
                 'collection',
@@ -36,5 +40,7 @@ class SaleSerializer(ModelSerializer):
                 'status',
                 'delivery_status',
                 'created_at',
-                'updated_at']
+                'updated_at',
+                'customer_data'
+                ]
     

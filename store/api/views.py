@@ -1,6 +1,5 @@
 import datetime as dt
 import json
-import os
 from accounts.models import Account
 from customer.models import Customer
 from rest_framework.views import APIView
@@ -11,6 +10,16 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from store.models import Sale, Store, Spent
 from store.api.serializers import SpentSerializer, StoreSerializer, SaleSerializer
+from rest_framework import generics
+
+
+def get_date(data):
+    date = list(data)
+    year = "".join(date[0:4])
+    month = "".join(date[4:6])
+    day = "".join(date[6:8])
+    date = dt.date(int(year), int(month), int(day))
+    return date
 
 
 class StoreApiViewSet(ModelViewSet):
@@ -39,37 +48,16 @@ class SaleApiViewSet(ModelViewSet):
     queryset = Sale.objects.all()
     http_method_names = ['get', 'post', 'put', 'delete']
     filter_backends = [OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['store_id', 'customer_id', 'date']
+    filterset_fields = ['store', 'customer']
     ordering = ['-id']
 
-
-def read_file():
-    with open(os.path.join('data.json')) as file:
-        object = json.load(file)
-        return object
     
-    
-def create_sales():
-    object = read_file()
-    return object
-
-
-def get_date(data):
-    date = list(data)
-    year = "".join(date[0:4])
-    month = "".join(date[4:6])
-    day = "".join(date[6:8])
-    date = dt.date(int(year), int(month), int(day))
-    return date
-
-
 class CreateSalesApiViewSet(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         sales = json.loads(request.data["data"])
-        #sales = create_sales()
-        
+
         for sale in sales:
             phone = sale["telefono_destinatario"]
             date = get_date(sale["fecha_creacion"])
@@ -91,12 +79,10 @@ class CreateSalesApiViewSet(APIView):
 
             is_sale_exists = Sale.objects.filter(guide=sale["guia"]).exists()
 
-            print(is_sale_exists)
             if not is_sale_exists:
                 object = Sale()
-                object.id = sale["id_registro"]
-                object.store_id = store
-                object.customer_id = customer
+                object.store = store
+                object.customer = customer
                 object.sale = sale["venta"]
                 object.collection = int(sale["recaudo"])
                 object.cost = int(sale["costo"])
@@ -110,13 +96,51 @@ class CreateSalesApiViewSet(APIView):
         return Response({"message": "created"})
 
 
-    # start_date =  dt.date(2022, 8, 1)
-    # end_date = dt.date(2022, 8, 17)
-    # query=Sale.objects.filter(date__gte=start_date,date__lte=end_date)
-    # for q in query:
-    #  print(q.date)
-    # query=Sale.objects.filter(store_id__name="OSVILL")
-    # for q in query:
-    #  print(q.date)
-    # x = os.path.join('data.csv')
-    
+class DateSaleApiViewSet(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SaleSerializer
+
+    def get_queryset(self):
+        user_id = self.request.query_params.get('user')
+        store_id = self.request.query_params.get('store_id')
+        start_date = self.request.query_params.get('start_date')
+        start_date = get_date(start_date)
+        end_date = self.request.query_params.get('end_date')
+        end_date = get_date(end_date)
+        queryset = Sale.objects.all()
+
+        if user_id is not None:
+           queryset = queryset.filter(store__user=user_id, date__gte=start_date, date__lte=end_date)
+
+        if store_id is not None:
+           queryset = queryset.filter(store=store_id, date__gte=start_date, date__lte=end_date)
+
+        return queryset
+
+
+class StatisticsApiViewSet(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user_id = request.data["user"]
+        start_date = get_date(request.data["start_date"])
+        end_date = get_date(request.data["end_date"])
+        sales = Sale.objects.filter(store__user=user_id, date__gte=start_date, date__lte=end_date)
+        
+        total_collection = 0
+        total_cost = 0
+        total_freight = 0
+        num_sale = 0
+
+        for sale in sales:
+            total_collection += sale.collection
+            total_cost += sale.cost
+            num_sale += 1
+            total_freight += sale.freight
+        
+       
+        return Response({"total_collection" : total_collection,
+                         "total_cost" : total_cost, 
+                         "total_freight" : total_freight, 
+                         "num_sale" : num_sale,
+                         })
