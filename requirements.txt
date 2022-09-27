@@ -30,7 +30,6 @@ pypiwin32
 python-dateutil
 python-decouple
 pytz
-pywin32
 PyYAML
 requests
 ruamel.yaml
