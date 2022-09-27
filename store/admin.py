@@ -7,8 +7,8 @@ class StoreAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
 
 @admin.register(Spent)
-class MonthAdmin(admin.ModelAdmin):
-    list_display = ('store', 'month', 'year')
+class SpentAdmin(admin.ModelAdmin):
+    list_display = ('store','date')
 
 @admin.register(Sale)
 class SaleAdmin(admin.ModelAdmin):

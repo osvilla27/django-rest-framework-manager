@@ -17,11 +17,10 @@ class SpentSerializer(ModelSerializer):
 
     class Meta:
         model = Spent
-        fields = ['id', 'store', 'year', 'month', 'total', 'description']
+        fields = ['id', 'store', 'date', 'total', 'description']
 
 
 class SaleSerializer(ModelSerializer):
-
     customer_data = CustomerSerializer(source='customer', read_only=True)
 
     class Meta:

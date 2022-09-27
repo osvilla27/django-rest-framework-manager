@@ -6,6 +6,7 @@ import datetime
 
 
 class Store(models.Model):
+
     name = models.CharField(max_length=50)
     user = models.ForeignKey(Account, null=True, on_delete=models.SET_NULL)
     slug = models.SlugField(null=False, unique=True)
@@ -26,12 +27,22 @@ class Store(models.Model):
 class Spent(models.Model):
 
     store = models.ForeignKey(Store, on_delete=models.CASCADE)
-    year = models.IntegerField(default=datetime.datetime.now().year)
-    month = models.IntegerField(default=datetime.datetime.now().month)
+    date = models.DateField(default=datetime.datetime.now())
     total = models.FloatField(default=0)
     description = models.CharField(max_length=50,blank=True)
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
+
+
+class DaySpent(models.Model):
+
+    store = models.ForeignKey(Store, on_delete=models.CASCADE)
+    date = models.DateField(default=datetime.datetime.now())
+    total = models.FloatField(default=0)
+    description = models.CharField(max_length=50,blank=True)
+    created_at=models.DateTimeField(auto_now_add=True)
+    updated_at=models.DateTimeField(auto_now=True)
+
 
 
 class Sale(models.Model):
